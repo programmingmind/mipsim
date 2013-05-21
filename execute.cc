@@ -76,6 +76,8 @@ void execute() {
   JType rj(instr);
   unsigned int pctarget = pc + 4;
   unsigned int addr, tmp;
+cout<<pc<<"\t";
+  instr.printI(instr);
   stats.instrs++;
   stats.cycles++;
   pc = pctarget;
@@ -276,7 +278,6 @@ void execute() {
       stats.hasUsefulJumpDelaySlot++;
     }
 
-
     execute();
     pc = (pc & 0xf0000000) | (rj.target << 2);
     stats.numJType++;
@@ -293,8 +294,9 @@ void execute() {
     if (imem[pc] == Data32(0))
       stats.hasUselessBranchDelaySlot++;
     if (rf[ri.rs] != rf[ri.rt]) {
+      pctarget = pc + (ri.imm<<2);
       execute();
-      pc = pc + (ri.imm<<2) - 8;
+      pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
       else
@@ -312,8 +314,9 @@ void execute() {
     break;
   case OP_BEQ:
     if (rf[ri.rs] == rf[ri.rt]) {
+      pctarget = pc + (ri.imm<<2);
       execute(); 
-      pc = pc + (ri.imm<<2) - 8;
+      pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
       else
@@ -331,8 +334,9 @@ void execute() {
     break;
   case OP_BLEZ:
     if (rf[ri.rs] <= 0) {
+      pctarget = pc + (ri.imm<<2);
       execute();
-      pc = pc + (ri.imm<<2) - 8;
+      pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
       else

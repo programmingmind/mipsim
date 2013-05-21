@@ -14,6 +14,59 @@ unsigned int signExtend8to32ui(int i) {
   return static_cast<unsigned int>(static_cast<int>(i & 0xFF));
 }
 
+//check if about to go out of range
+void determineLatchesUsed(unsigned int regLoaded) {
+  
+  Data32 d = imem[pc];
+  RType rrt(d);
+  IType rri(d);
+
+  if (d != Data32(0)) {
+    switch(d.classifyType(d)) {
+    case R_TYPE:
+      if (rrt.rs == regLoaded || rrt.rt == regLoaded)
+        stats.numExForwards++;
+      if (rrt.rd == regLoaded)
+        return;
+    break;
+    case I_TYPE:
+      //if OP is SW, SB, BEQ, or BNE, then check both rt and rs
+      if (rri.op == 4 || rri.op == 5 || rri.op == 43 || rri.op == 40) {
+        if (rri.rs == regLoaded || rri.rt == regLoaded)
+          stats.numExForwards++;
+      }
+      else if (rri.rs == regLoaded) 
+        stats.numExForwards++;
+      if (rri.rt == regLoaded)
+        return;
+    break;
+    default:
+    break;
+    }
+  }
+
+  d = imem[pc + 4];
+  RType rrtt(d);
+  IType rrii(d);
+
+  if (d != Data32(0) ) {
+    switch(d.classifyType(d)) {
+    case R_TYPE:
+      if (rrtt.rs == regLoaded || rrtt.rt == regLoaded) 
+        stats.numMemForwards++;
+    break;
+    case I_TYPE:
+      if (rrii.op == 4 || rrii.op == 5 || rrii.op == 43 || rrii.op == 40) {
+        if (rrii.rs == regLoaded || rrii.rs == regLoaded) 
+        stats.numMemForwards++;
+      }
+    break;
+    default:
+    break;
+    } 
+  }
+}
+
 void execute() {
 //cout<<"Data[40022c]: " << dmem[0x40022c]<<endl;
 //  int16_t signedShort;
@@ -33,6 +86,9 @@ void execute() {
   pc = pctarget;
   switch(rg.op) {
   case OP_SPECIAL:
+    if (instr != Data32(0))
+      determineLatchesUsed(rt.rd);
+
     switch(rg.func) {
     case SP_ADDU:
 //cout<<rf[rt.rs]<<"\t"<<rf[rt.rt]<<endl;
@@ -91,15 +147,16 @@ void execute() {
       }
       break;
     case SP_JALR:
+      rf.write(31, pc + 4);
+
       if (imem[pc] == Data32(0)) {
        stats.hasUselessJumpDelaySlot++;
-       stats.cycles++;
       }
       else {
         stats.hasUsefulJumpDelaySlot++;
-        execute();
       }
-      rf.write(rt.rd, pc + 4);
+    
+      execute(); 
       pc = (unsigned int)(rf[rt.rs]);
       stats.numRType++;
       stats.numRegReads++;
@@ -108,12 +165,12 @@ void execute() {
     case SP_JR:
       if (imem[pc] == Data32(0)) {
         stats.hasUselessJumpDelaySlot++;
-        stats.cycles++;
       }
       else {
         stats.hasUsefulJumpDelaySlot++;
-        execute();
       }
+
+      execute();
       pc = (unsigned int)(rf[rt.rs]);
       stats.numRType++;
       stats.numRegReads++;
@@ -144,6 +201,7 @@ void execute() {
     }
     break;
   case OP_ADDIU:
+    determineLatchesUsed(ri.rt);
     rf.write(ri.rt, rf[ri.rs] + signExtend16to32ui(ri.imm));
     stats.numIType++;
     stats.numRegReads++;
@@ -170,6 +228,7 @@ void execute() {
     stats.numMemReads++;
     break;
   case OP_LW:
+    determineLatchesUsed(ri.rt);
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
 //cout<<rf[ri.rs]<<"\t"<<ri.imm<<"\t"<<addr<<endl;
 //cout<<dmem[addr]<<endl;
@@ -190,6 +249,7 @@ void execute() {
 
     break;
   case OP_LB:
+    determineLatchesUsed(ri.rt);
 //cout<<rf[ri.rs]<<"\t"<<rf[ri.rt]<<"\t"<<ri.imm<<"\t"<<signExtend16to32ui(ri.imm)<<endl;
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
 //cout<<dmem[rf[ri.rs]]<<endl;
@@ -204,6 +264,7 @@ void execute() {
     stats.numMemReads++;
     break;
   case OP_LUI:
+    determineLatchesUsed(ri.rt);
 //cout<<ri.imm<<"\t"<<(ri.imm << 16)<<endl;
     rf.write(ri.rt, ri.imm << 16);
     stats.numIType++;
@@ -213,30 +274,32 @@ void execute() {
   case OP_J:
      if (imem[pc] == Data32(0)) {
       stats.hasUselessJumpDelaySlot++;
-      stats.cycles++;
     }
     else {
       stats.hasUsefulJumpDelaySlot++;   //cout <<(pc&0xf0000000)<<'\t'<<(rj.target<<2)<<endl;
-      execute();
     }
+
+    execute();
     pc = (pc & 0xf0000000) | (rj.target << 2);
     stats.numJType++;
     break;
   case OP_JAL:
+    rf.write(31, pc + 4);
     if (imem[pc] == Data32(0)) {
       stats.hasUselessJumpDelaySlot++;
-      stats.cycles++;
     }
     else {
       stats.hasUsefulJumpDelaySlot++;
-      execute();
     }
-    rf.write(31, pc + 4);
+
+
+    execute();
     pc = (pc & 0xf0000000) | (rj.target << 2);
     stats.numJType++;
     stats.numRegWrites++;
     break;
   case OP_SLTI:
+    determineLatchesUsed(ri.rt);
     rf.write(ri.rt, rf[ri.rs] < ri.imm ? 1 : 0);
     stats.numIType++;
     stats.numRegWrites++;
@@ -264,25 +327,53 @@ void execute() {
     stats.numRegReads += 2;
     break;
   case OP_BEQ:
-    if (rf[ri.rs] == rf[ri.rt]) 
-      pc = pc + (ri.imm<<2) - 4;
+    if (rf[ri.rs] == rf[ri.rt]) {
+      execute(); 
+      pc = pc + (ri.imm<<2) - 8;
+      if (ri.imm < 0)
+        stats.numBackwardBranchesTaken++;
+      else
+        stats.numForwardBranchesTaken++;
+    }
+    else {
+      if (ri.imm < 0)
+        stats.numBackwardBranchesNotTaken++;
+      else
+        stats.numForwardBranchesTaken++;
+    }
+
     stats.numIType++;
     stats.numRegReads += 2;
     break;
 //new vvvv
   case OP_BLEZ:
-    if (rf[ri.rs] <= 0)
-      pc = pc + (ri.imm<<2) - 4;
+    if (rf[ri.rs] <= 0) {
+      execute();
+      pc = pc + (ri.imm<<2) - 8;
+      if (ri.imm < 0)
+        stats.numBackwardBranchesTaken++;
+      else
+        stats.numForwardBranchesTaken++;
+    }
+    else {
+      if (ri.imm < 0)
+        stats.numBackwardBranchesNotTaken++;
+      else
+        stats.numForwardBranchesTaken++;
+    }
+
     stats.numIType++;
     stats.numRegReads++;
     break;
   case OP_ORI:
+    determineLatchesUsed(ri.rt);
     rf.write(ri.rt, rf[ri.rs] | ri.imm);
     stats.numIType++;
     stats.numRegReads++;
     stats.numRegWrites++;
     break;
   case OP_SLTIU:
+    determineLatchesUsed(ri.rt);
     rf.write(ri.rt, rf[ri.rs] < (unsigned short)ri.imm ? 1 : 0);
     stats.numIType++;
     stats.numRegReads++;

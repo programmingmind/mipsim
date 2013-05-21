@@ -68,9 +68,6 @@ void determineLatchesUsed(unsigned int regLoaded) {
 }
 
 void execute() {
-//cout<<"Data[40022c]: " << dmem[0x40022c]<<endl;
-//  int16_t signedShort;
-//  int32_t signedInt;
   Data32 instr = imem[pc];
   Data32 temp = NULL;
   GenericType rg(instr);
@@ -79,8 +76,6 @@ void execute() {
   JType rj(instr);
   unsigned int pctarget = pc + 4;
   unsigned int addr, tmp;
-  //cout<<pc<<"  ";
-  //instr.printI(instr);
   stats.instrs++;
   stats.cycles++;
   pc = pctarget;
@@ -91,7 +86,6 @@ void execute() {
 
     switch(rg.func) {
     case SP_ADDU:
-//cout<<rf[rt.rs]<<"\t"<<rf[rt.rt]<<endl;
       rf.write(rt.rd, rf[rt.rs] + rf[rt.rt]);
       stats.numRegReads += 2;
       stats.numRegWrites++;
@@ -208,7 +202,6 @@ void execute() {
     stats.numRegWrites++;
     break;
   case OP_SW:
-//cout<<dmem[addr]<<endl;
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
     caches.access(addr);
     dmem.write(addr, rf[ri.rt]);
@@ -230,8 +223,6 @@ void execute() {
   case OP_LW:
     determineLatchesUsed(ri.rt);
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
-//cout<<rf[ri.rs]<<"\t"<<ri.imm<<"\t"<<addr<<endl;
-//cout<<dmem[addr]<<endl;
     caches.access(addr);
     rf.write(ri.rt, dmem[addr]);
     stats.numIType++;
@@ -250,14 +241,9 @@ void execute() {
     break;
   case OP_LB:
     determineLatchesUsed(ri.rt);
-//cout<<rf[ri.rs]<<"\t"<<rf[ri.rt]<<"\t"<<ri.imm<<"\t"<<signExtend16to32ui(ri.imm)<<endl;
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
-//cout<<dmem[rf[ri.rs]]<<endl;
-//cout<<addr<<endl; 
     caches.access(addr);
-//cout<<dmem[addr]<<endl;
     rf.write(ri.rt, signExtend8to32ui(dmem[addr].data_ubyte4(3)));
-   //cout<<rf[ri.rt]<<endl;
     stats.numIType++;
     stats.numRegReads++;
     stats.numRegWrites++;
@@ -265,11 +251,9 @@ void execute() {
     break;
   case OP_LUI:
     determineLatchesUsed(ri.rt);
-//cout<<ri.imm<<"\t"<<(ri.imm << 16)<<endl;
     rf.write(ri.rt, ri.imm << 16);
     stats.numIType++;
     stats.numRegWrites++;
-//cout<<rf[ri.rt]<<endl;
     break;
   case OP_J:
      if (imem[pc] == Data32(0)) {
@@ -345,7 +329,6 @@ void execute() {
     stats.numIType++;
     stats.numRegReads += 2;
     break;
-//new vvvv
   case OP_BLEZ:
     if (rf[ri.rs] <= 0) {
       execute();

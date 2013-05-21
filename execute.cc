@@ -132,15 +132,13 @@ cout<<pc<<"\t";
       stats.numRegWrites++;
       break;
     case SP_SLL:
-      if (instr != Data32(0)) { // Not a NOP
-         rf.write(rt.rd, rf[rt.rt] << rt.sa);
+      if (instr == Data32(0))
+        stats.instrs--;
+      else
          stats.numRType++;
-         stats.numRegReads++;
-         stats.numRegWrites++;
-      }
-      else {
-         stats.instrs--;
-      }
+      rf.write(rt.rd, rf[rt.rt] << rt.sa);
+      stats.numRegReads++;
+      stats.numRegWrites++;
       break;
     case SP_JALR:
       rf.write(31, pc + 4);

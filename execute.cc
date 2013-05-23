@@ -74,7 +74,7 @@ void execute() {
       determineLatchesUsed(rt.rd);
     switch(rg.func) {
     case SP_ADDU:
-      rf.write(rt.rd, rf[rt.rs] + rf[rt.rt]);
+      rf.write(rt.rd, signExtend16to32ui(rf[rt.rs]) + signExtend16to32ui(rf[rt.rt]));
       stats.numRegReads += 2;
       stats.numRegWrites++;
       stats.numRType++;

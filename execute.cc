@@ -3,7 +3,7 @@
 
 Stats stats;
 Caches caches(0);
-
+int c = 0;
 unsigned int signExtend16to32ui(short i) {
   return static_cast<unsigned int>(static_cast<int>(i));
 }
@@ -23,25 +23,18 @@ void determineLatchesUsed(unsigned int regLoaded) {
 
   if (d != Data32(0)) {
     switch(d.classifyType(d)) {
-    case R_TYPE:
-      if (rrt.rs == regLoaded || rrt.rt == regLoaded)
-        stats.numExForwards++;
-      if (rrt.rd == regLoaded)
-        return;
-    break;
-    case I_TYPE:
-      //if OP is SW, SB, BEQ, or BNE, then check both rt and rs
-      if (rri.op == 4 || rri.op == 5 || rri.op == 43 || rri.op == 40) {
-        if (rri.rs == regLoaded || rri.rt == regLoaded)
+      case R_TYPE:
+        if (rrt.rs == regLoaded || rrt.rt == regLoaded)
           stats.numExForwards++;
-      }
-      else if (rri.rs == regLoaded) 
-        stats.numExForwards++;
-      /*if (rri.rt == regLoaded)
-        return;*/
-    break;
-    default:
-    break;
+        if (rrt.rd == regLoaded)
+          return;
+      break;
+      case I_TYPE:
+        if (rri.rs == regLoaded || ((rri.op==4 || rri.op==5 || rri.op==43 || rri.op==40) && rri.rt==regLoaded))
+          stats.numExForwards++;
+        if (rri.rt == regLoaded)
+          return;
+      break;
     }
   }
 
@@ -51,20 +44,14 @@ void determineLatchesUsed(unsigned int regLoaded) {
 
   if (d != Data32(0) ) {
     switch(d.classifyType(d)) {
-    case R_TYPE:
-      if (rrtt.rs == regLoaded || rrtt.rt == regLoaded) 
-        stats.numMemForwards++;
-    break;
-    case I_TYPE:
-      if (rrii.op == 4 || rrii.op == 5 || rrii.op == 43 || rrii.op == 40) {
-        if (rrii.rs == regLoaded || rrii.rt == regLoaded) 
-        stats.numMemForwards++;
-      }
-      else if (rri.rs == regLoaded)
-         stats.numMemForwards++;
-    break;
-    default:
-    break;
+      case R_TYPE:
+        if (rrtt.rs == regLoaded || rrtt.rt == regLoaded)
+          stats.numMemForwards++;
+        break;
+      case I_TYPE:
+        if (rrii.rs == regLoaded || ((rrii.op==4 || rrii.op==5 || rrii.op==43 || rrii.op==40) && rrii.rt==regLoaded))
+          stats.numMemForwards++;
+      break;
     } 
   }
 }
@@ -85,7 +72,7 @@ void execute() {
   pc = pctarget;
   switch(rg.op) {
   case OP_SPECIAL:
-    if (instr != Data32(0))
+    if (instr != Data32(0) && rg.func != SP_JR)
       determineLatchesUsed(rt.rd);
     switch(rg.func) {
     case SP_ADDU:

@@ -239,6 +239,16 @@ void execute() {
     stats.numRegWrites++;
     stats.numMemReads++;
     break;
+  case OP_LBU:
+    determineLatchesUsed(ri.rt);
+    addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
+    caches.access(addr);
+    rf.write(ri.rt, signExtend8to32ui(dmem[addr].data_ubyte4(0)));
+    stats.numIType++;
+    stats.numRegReads++;
+    stats.numRegWrites++;
+    stats.numMemReads++;
+    break;
   case OP_LUI:
     determineLatchesUsed(ri.rt);
     rf.write(ri.rt, ri.imm << 16);
@@ -294,7 +304,7 @@ void execute() {
       if (ri.imm < 0)
         stats.numBackwardBranchesNotTaken++;
       else
-        stats.numForwardBranchesTaken++;
+        stats.numForwardBranchesNotTaken++;
     }
 
     stats.numIType++;
@@ -314,9 +324,9 @@ void execute() {
       if (ri.imm < 0)
         stats.numBackwardBranchesNotTaken++;
       else
-        stats.numForwardBranchesTaken++;
+        stats.numForwardBranchesNotTaken++;
     }
-
+    
     stats.numIType++;
     stats.numRegReads += 2;
     break;
@@ -334,7 +344,7 @@ void execute() {
       if (ri.imm < 0)
         stats.numBackwardBranchesNotTaken++;
       else
-        stats.numForwardBranchesTaken++;
+        stats.numForwardBranchesNotTaken++;
     }
 
     stats.numIType++;

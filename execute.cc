@@ -250,7 +250,7 @@ void execute() {
       stats.hasUselessJumpDelaySlot++;
     }
     else {
-      stats.hasUsefulJumpDelaySlot++;   //cout <<(pc&0xf0000000)<<'\t'<<(rj.target<<2)<<endl;
+      stats.hasUsefulJumpDelaySlot++;
     }
     pctarget = (pc & 0xf0000000) | (rj.target << 2);
     //execute();

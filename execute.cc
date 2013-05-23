@@ -3,7 +3,7 @@
 
 Stats stats;
 Caches caches(0);
-int c = 0;
+
 unsigned int signExtend16to32ui(short i) {
   return static_cast<unsigned int>(static_cast<int>(i));
 }

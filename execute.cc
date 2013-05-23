@@ -37,8 +37,8 @@ void determineLatchesUsed(unsigned int regLoaded) {
       }
       else if (rri.rs == regLoaded) 
         stats.numExForwards++;
-      if (rri.rt == regLoaded)
-        return;
+      /*if (rri.rt == regLoaded)
+        return;*/
     break;
     default:
     break;
@@ -78,8 +78,8 @@ void execute() {
   JType rj(instr);
   unsigned int pctarget = pc + 4;
   unsigned int addr, tmp;
-cout<<pc<<"\t";
-  instr.printI(instr);
+//  cout<<pc<<"\t";
+//  instr.printI(instr);
   stats.instrs++;
   stats.cycles++;
   pc = pctarget;
@@ -214,7 +214,7 @@ cout<<pc<<"\t";
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
     caches.access(addr);
     temp = dmem[addr];
-    temp.set_data_ubyte4(3, rf[ri.rt] & 0xFF);
+    temp.set_data_ubyte4(0, rf[ri.rt] & 0xFF);
     dmem.write(addr, temp);
     stats.numIType++;
     stats.numRegReads += 2;
@@ -244,7 +244,7 @@ cout<<pc<<"\t";
     determineLatchesUsed(ri.rt);
     addr = rf[ri.rs] + signExtend16to32ui(ri.imm);
     caches.access(addr);
-    rf.write(ri.rt, signExtend8to32ui(dmem[addr].data_ubyte4(3)));
+    rf.write(ri.rt, signExtend8to32ui(dmem[addr].data_ubyte4(0)));
     stats.numIType++;
     stats.numRegReads++;
     stats.numRegWrites++;

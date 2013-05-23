@@ -65,8 +65,6 @@ void execute() {
   JType rj(instr);
   unsigned int pctarget = pc + 4;
   unsigned int addr, tmp;
-//  cout<<pc<<"\t";
-//  instr.printI(instr);
   stats.instrs++;
   stats.cycles++;
   pc = pctarget;
@@ -93,12 +91,12 @@ void execute() {
       stats.numRegReads += 2;
       stats.numRegWrites++;
       break;
-    case SP_SUBU: //new
+    /*case SP_SUBU: //new
       rf.write(rt.rd, (unsigned int)rf[rt.rs] - (unsigned int)rf[rt.rt]);
       stats.numRType++;
       stats.numRegReads += 2;
       stats.numRegWrites++;
-      break;
+      break;*/
     case SP_AND: //new
       rf.write(rt.rd, rf[rt.rs] & rf[rt.rt]);
       stats.numRType++;
@@ -142,7 +140,7 @@ void execute() {
         stats.hasUsefulJumpDelaySlot++;
       }
     
-      execute(); 
+      //execute(); 
       pc = (unsigned int)(rf[rt.rs]);
       stats.numRType++;
       stats.numRegReads++;
@@ -156,7 +154,7 @@ void execute() {
         stats.hasUsefulJumpDelaySlot++;
       }
 
-      execute();
+     // execute();
       pc = (unsigned int)(rf[rt.rs]);
       stats.numRType++;
       stats.numRegReads++;
@@ -254,9 +252,9 @@ void execute() {
     else {
       stats.hasUsefulJumpDelaySlot++;   //cout <<(pc&0xf0000000)<<'\t'<<(rj.target<<2)<<endl;
     }
-
-    execute();
-    pc = (pc & 0xf0000000) | (rj.target << 2);
+    pctarget = (pc & 0xf0000000) | (rj.target << 2);
+    //execute();
+    pc = pctarget;
     stats.numJType++;
     break;
   case OP_JAL:
@@ -267,9 +265,9 @@ void execute() {
     else {
       stats.hasUsefulJumpDelaySlot++;
     }
-
-    execute();
-    pc = (pc & 0xf0000000) | (rj.target << 2);
+    pctarget = (pc & 0xf0000000) | (rj.target << 2);
+    //execute();
+    pc = pctarget;
     stats.numJType++;
     stats.numRegWrites++;
     break;
@@ -285,7 +283,7 @@ void execute() {
       stats.hasUselessBranchDelaySlot++;
     if (rf[ri.rs] != rf[ri.rt]) {
       pctarget = pc + (ri.imm<<2);
-      execute();
+     // execute();
       pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
@@ -305,7 +303,7 @@ void execute() {
   case OP_BEQ:
     if (rf[ri.rs] == rf[ri.rt]) {
       pctarget = pc + (ri.imm<<2);
-      execute(); 
+     // execute(); 
       pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
@@ -325,7 +323,7 @@ void execute() {
   case OP_BLEZ:
     if (rf[ri.rs] <= 0) {
       pctarget = pc + (ri.imm<<2);
-      execute();
+    //  execute();
       pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
@@ -351,7 +349,7 @@ void execute() {
     break;
   case OP_SLTIU:
     determineLatchesUsed(ri.rt);
-    rf.write(ri.rt, rf[ri.rs] < (unsigned short)ri.imm ? 1 : 0);
+    rf.write(ri.rt, rf[ri.rs] < ri.imm ? 1 : 0);
     stats.numIType++;
     stats.numRegReads++;
     stats.numRegWrites++;

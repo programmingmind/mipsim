@@ -9,14 +9,11 @@ unsigned int signExtend16to32ui(short i) {
 }
 
 unsigned int signExtend8to32ui(int i) {
-  //cout<<20<<"\t"<<32<<endl;
-  //cout<<i<<"\t"<<(i & 0xFF)<<endl;
   return static_cast<unsigned int>(static_cast<int>(i & 0xFF));
 }
 
 //check if about to go out of range
-void determineLatchesUsed(unsigned int regLoaded) {
-  
+void determineLatchesUsed(unsigned int regLoaded) {  
   Data32 d = imem[pc];
   RType rrt(d);
   IType rri(d);
@@ -55,6 +52,22 @@ void determineLatchesUsed(unsigned int regLoaded) {
     } 
   }
 }
+
+void determineLoadUseHazard(unsigned int regLoaded) {
+  Data32 d = imem[pc];
+  RType rrt(d);
+  IType rri(d);
+  Type type = d.classifyType(d);
+
+  if ((type==R_TYPE && (rrt.rs==regLoaded || rrt.rt==regLoaded)) || (type==I_TYPE && (rri.rs == regLoaded || ((rri.op==4 || rri.op==5 || rri.op==43 || rri.op==40) && rri.rt==regLoaded))))
+    stats.loadHasLoadUseHazard++;
+  else {
+    stats.loadHasNoLoadUseHazard++;
+    if (d == Data32(0))
+      stats.loadHasLoadUseStall++;
+  }
+}
+
 
 void execute() {
   Data32 instr = imem[pc];
@@ -219,15 +232,7 @@ void execute() {
     stats.numRegReads++;
     stats.numRegWrites++;
     stats.numMemReads++;
-
-    if (0) // check load use Hazard
-      stats.loadHasLoadUseHazard++;
-    else {
-      stats.loadHasNoLoadUseHazard++;
-      if (imem[pc] == Data32(0))
-        stats.loadHasLoadUseStall++;
-    }
-
+    determineLoadUseHazard(ri.rt);
     break;
   case OP_LB:
     determineLatchesUsed(ri.rt);
@@ -238,6 +243,7 @@ void execute() {
     stats.numRegReads++;
     stats.numRegWrites++;
     stats.numMemReads++;
+    determineLoadUseHazard(ri.rt);
     break;
   case OP_LBU:
     determineLatchesUsed(ri.rt);
@@ -248,6 +254,7 @@ void execute() {
     stats.numRegReads++;
     stats.numRegWrites++;
     stats.numMemReads++;
+    determineLoadUseHazard(ri.rt);
     break;
   case OP_LUI:
     determineLatchesUsed(ri.rt);

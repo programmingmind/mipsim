@@ -57,9 +57,11 @@ void determineLatchesUsed(unsigned int regLoaded) {
     break;
     case I_TYPE:
       if (rrii.op == 4 || rrii.op == 5 || rrii.op == 43 || rrii.op == 40) {
-        if (rrii.rs == regLoaded || rrii.rs == regLoaded) 
+        if (rrii.rs == regLoaded || rrii.rt == regLoaded) 
         stats.numMemForwards++;
       }
+      else if (rri.rs == regLoaded)
+         stats.numMemForwards++;
     break;
     default:
     break;
@@ -85,7 +87,6 @@ cout<<pc<<"\t";
   case OP_SPECIAL:
     if (instr != Data32(0))
       determineLatchesUsed(rt.rd);
-
     switch(rg.func) {
     case SP_ADDU:
       rf.write(rt.rd, rf[rt.rs] + rf[rt.rt]);

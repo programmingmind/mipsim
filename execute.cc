@@ -140,7 +140,7 @@ void execute() {
         stats.hasUsefulJumpDelaySlot++;
       }
     
-      //execute(); 
+      execute(); 
       pc = (unsigned int)(rf[rt.rs]);
       stats.numRType++;
       stats.numRegReads++;
@@ -154,7 +154,7 @@ void execute() {
         stats.hasUsefulJumpDelaySlot++;
       }
 
-     // execute();
+      execute();
       pc = (unsigned int)(rf[rt.rs]);
       stats.numRType++;
       stats.numRegReads++;
@@ -253,7 +253,7 @@ void execute() {
       stats.hasUsefulJumpDelaySlot++;
     }
     pctarget = (pc & 0xf0000000) | (rj.target << 2);
-    //execute();
+    execute();
     pc = pctarget;
     stats.numJType++;
     break;
@@ -266,7 +266,7 @@ void execute() {
       stats.hasUsefulJumpDelaySlot++;
     }
     pctarget = (pc & 0xf0000000) | (rj.target << 2);
-    //execute();
+    execute();
     pc = pctarget;
     stats.numJType++;
     stats.numRegWrites++;
@@ -283,7 +283,7 @@ void execute() {
       stats.hasUselessBranchDelaySlot++;
     if (rf[ri.rs] != rf[ri.rt]) {
       pctarget = pc + (ri.imm<<2);
-     // execute();
+      execute();
       pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
@@ -303,7 +303,7 @@ void execute() {
   case OP_BEQ:
     if (rf[ri.rs] == rf[ri.rt]) {
       pctarget = pc + (ri.imm<<2);
-     // execute(); 
+      execute(); 
       pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;
@@ -323,7 +323,7 @@ void execute() {
   case OP_BLEZ:
     if (rf[ri.rs] <= 0) {
       pctarget = pc + (ri.imm<<2);
-    //  execute();
+      execute();
       pc = pctarget;
       if (ri.imm < 0)
         stats.numBackwardBranchesTaken++;

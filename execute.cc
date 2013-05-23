@@ -81,8 +81,12 @@ void execute() {
       stats.numRegWrites++;
       stats.numRType++;
       break;
-//    case SP_ADD:
-//      break;
+    case SP_ADD:
+      rf.write(rt.rd, rf[rt.rs] + rf[rt.rt]);
+      stats.numRegReads += 2;
+      stats.numRegWrites++;
+      stats.numRType++;
+      break;
     case SP_SUB: //new
       rf.write(rt.rd, rf[rt.rs] - rf[rt.rt]);
       stats.numRType++;

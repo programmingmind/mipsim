@@ -80,15 +80,19 @@ void Memory<Data32, Data32>::dump(DataType dt) const {
 // cache size in blocks). You should also update the "hits" and
 // "misses" counters.
 bool Cache::access(unsigned int address) {
-
-  int index = (address >> (int)(8-(log(entries.capacity())/log(2)))) & (entries.capacity()*2 - 1);
+  int m = 0, index, tag;
+  
+  while (1<<m != blocksize)
+    m++;
+  index = (address & (size - 1)) >> m;
+  tag = address >> 8;
  
-  if (entries[index]  == address >> 8) {
+  if (entries[index] == tag) {
     hits++; 
     return true;
   }
   else {
-    entries[index] = address >> 8;
+    entries[index] = tag;
     misses++;
   }
 

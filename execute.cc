@@ -299,6 +299,8 @@ void execute() {
   case OP_BNE:
     if (imem[pc] == Data32(0))
       stats.hasUselessBranchDelaySlot++;
+    else
+      stats.hasUsefulBranchDelaySlot++;
     if (rf[ri.rs] != rf[ri.rt]) {
       pctarget = pc + (ri.imm<<2);
       execute();
@@ -321,6 +323,8 @@ void execute() {
   case OP_BEQ:
     if (imem[pc] == Data32(0))
       stats.hasUselessBranchDelaySlot++;
+    else
+      stats.hasUsefulBranchDelaySlot++;
     if (rf[ri.rs] == rf[ri.rt]) {
       pctarget = pc + (ri.imm<<2);
       execute(); 
@@ -343,6 +347,8 @@ void execute() {
   case OP_BLEZ:
     if (imem[pc] == Data32(0))
       stats.hasUselessBranchDelaySlot++;
+    else
+      stats.hasUsefulBranchDelaySlot++;
     if (rf[ri.rs] <= 0) {
       pctarget = pc + (ri.imm<<2);
       execute();

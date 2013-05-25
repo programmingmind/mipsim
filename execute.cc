@@ -78,6 +78,8 @@ void execute() {
   JType rj(instr);
   unsigned int pctarget = pc + 4;
   unsigned int addr, tmp;
+  if ((stats.instrs%1000000)==0)
+    cout<<"stats.instrs: "<<stats.instrs<<endl;
   stats.instrs++;
   stats.cycles++;
   pc = pctarget;
@@ -87,7 +89,7 @@ void execute() {
       determineLatchesUsed(rt.rd);
     switch(rg.func) {
     case SP_ADDU:
-      rf.write(rt.rd, signExtend16to32ui(rf[rt.rs]) + signExtend16to32ui(rf[rt.rt]));
+      rf.write(rt.rd, rf[rt.rs] + rf[rt.rt]);
       stats.numRegReads += 2;
       stats.numRegWrites++;
       stats.numRType++;
@@ -154,7 +156,7 @@ void execute() {
       }
     
       execute(); 
-      pc = (unsigned int)(rf[rt.rs]);
+      pc = (unsigned int)rf[rt.rs];
       stats.numRType++;
       stats.numRegReads++;
       stats.numRegWrites++;
@@ -168,12 +170,12 @@ void execute() {
       }
 
       execute();
-      pc = (unsigned int)(rf[rt.rs]);
+      pc = (unsigned int)rf[rt.rs];
       stats.numRType++;
       stats.numRegReads++;
       break;
     case SP_SRL: //new, assumed register values are signed
-      rf.write(rt.rd, (unsigned int)rf[rt.rt] >> rt.sa);
+      rf.write(rt.rd, rf[rt.rt] >> rt.sa);
       stats.numRType++;
       stats.numRegReads++;
       stats.numRegWrites++;

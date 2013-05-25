@@ -223,7 +223,6 @@ void execute() {
     stats.numIType++;
     stats.numRegReads += 2;
     stats.numMemWrites++;
-    stats.numMemReads++;
     break;
   case OP_LW:
     determineLatchesUsed(ri.rt);

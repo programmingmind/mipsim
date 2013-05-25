@@ -81,7 +81,7 @@ void Memory<Data32, Data32>::dump(DataType dt) const {
 // "misses" counters.
 bool Cache::access(unsigned int address) {
   int m = 0, index, tag;
- stats.numMemReads++; 
+
   while (1<<m != blocksize)
     m++;
   index = (address & (size - 1)) >> m;

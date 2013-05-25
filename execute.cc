@@ -78,8 +78,8 @@ void execute() {
   JType rj(instr);
   unsigned int pctarget = pc + 4;
   unsigned int addr, tmp;
-  if ((stats.instrs%1000000)==0)
-    cout<<"stats.instrs: "<<stats.instrs<<endl;
+  /*if ((stats.instrs%1000000)==0)
+    cout<<"stats.instrs: "<<stats.instrs<<endl;*/
   stats.instrs++;
   stats.cycles++;
   pc = pctarget;
